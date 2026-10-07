@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: pgvector/pgvector:pg16
+        image: postgis/postgis:16-3.4
         env:
           POSTGRES_DB: crowdops
           POSTGRES_USER: crowdops
@@ -43,6 +43,12 @@ jobs:
           python-version: "3.12"
       - name: Install backend dependencies
         run: pip install -r backend/requirements.txt
+      - name: Install pgvector into PostGIS CI service
+        run: |
+          DB_CONTAINER=$(docker ps --filter "ancestor=postgis/postgis:16-3.4" -q | head -1)
+          test -n "$DB_CONTAINER"
+          docker exec "$DB_CONTAINER" bash -lc "apt-get update && apt-get install -y postgresql-16-pgvector"
+          docker exec "$DB_CONTAINER" bash -lc "psql -U crowdops -d crowdops -c \"CREATE EXTENSION IF NOT EXISTS vector\""
       - name: Run Alembic migrations
         run: alembic -c backend/alembic.ini upgrade head
       - name: Run backend unit tests

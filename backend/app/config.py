@@ -1,14 +1,15 @@
 from functools import lru_cache
+from typing import Annotated
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict, NoDecode
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", case_sensitive=False)
     app_env: str = "development"
     database_url: str | None = None
     redis_url: str | None = None
-    api_keys: list[str] = Field(default_factory=list)
-    cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"])
+    api_keys: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=lambda: ["http://localhost:5173", "http://127.0.0.1:5173"])
     model_ready: bool = True
     llm_base_url: str | None = None
     llm_api_key: str | None = None

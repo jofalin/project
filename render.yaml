@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: crowd-ops-api
+    runtime: python
+    plan: free
+    autoDeployTrigger: off
+    buildCommand: pip install -r backend/requirements.txt
+    preDeployCommand: alembic -c backend/alembic.ini upgrade head
+    startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: API_KEYS
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: LLM_BASE_URL
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: crowd-ops-advisory

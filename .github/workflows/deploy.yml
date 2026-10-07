@@ -1,0 +1,70 @@
+name: Crowd Ops CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: ghcr.io/bengotow/postgis-with-pgvector:16-3.5
+        env:
+          POSTGRES_DB: crowdops
+          POSTGRES_USER: crowdops
+          POSTGRES_PASSWORD: crowdops
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U crowdops -d crowdops"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+asyncpg://crowdops:crowdops@localhost:5432/crowdops
+      REDIS_URL: redis://localhost:6379/0
+      API_KEYS: ci-key
+      PYTHONPATH: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+      - name: Run Alembic migrations
+        run: alembic -c backend/alembic.ini upgrade head
+      - name: Run backend unit tests
+        run: PYTHONPATH="$GITHUB_WORKSPACE/backend" python -m pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Validate frontend build
+        working-directory: frontend
+        run: npm install && npm run build
+
+  deploy:
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render backend deploy hook
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: test -n "$RENDER_DEPLOY_HOOK" && curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
+      - name: Trigger Vercel frontend deploy hook
+        env:
+          VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: test -n "$VERCEL_DEPLOY_HOOK" && curl --fail --silent --show-error -X POST "$VERCEL_DEPLOY_HOOK"

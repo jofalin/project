@@ -1,26 +1,67 @@
-const BASE=import.meta.env.VITE_API_URL||"http://localhost:8000";
-async function req(path,options={}){const r=await fetch(BASE+path,{headers:{"Content-Type":"application/json"},...options});if(!r.ok)throw new Error("API request failed");return r.json()}
-export const api={
- summary:()=>req("/dashboard/summary"),
- zones:()=>req("/zones"),
- logs:(level,search)=>req("/logs?"+new URLSearchParams({...(level!=="ALL"?{level}:{}),...(search?{search}:{})})),
- report:(p,start,end)=>req("/reports/"+p+"?"+new URLSearchParams({...(start?{start_date:start}:{}),...(end?{end_date:end}:{})})),
- status:()=>req("/mock/status"),
- start:s=>req("/mock/start",{method:"POST",body:JSON.stringify({speed:s})}),
- stop:()=>req("/mock/stop",{method:"POST"}),
- reset:()=>req("/mock/reset",{method:"POST"}),
- health:()=>req("/api/health"),
- predictiveFlow:()=>req("/api/predictive-flow"),
- weather:()=>req("/api/weather"),
- schedule:()=>req("/api/schedule"),
- context:()=>req("/api/context"),
- riskHistory:()=>req("/api/risk-history"),
- intelligenceReports:()=>req("/api/reports"),
- incidents:()=>req("/api/incidents"),
- sop:()=>req("/api/sop"),
- simulation:payload=>req("/api/simulation",{method:"POST",body:JSON.stringify(payload)}),
- operatorChat:(message,history=[])=>req("/api/operator-chat",{method:"POST",body:JSON.stringify({message,history})}),
- advisories:()=>req("/api/advisories"),
- approve:id=>req("/api/advisories/"+id+"/approve",{method:"POST"}),
- reject:id=>req("/api/advisories/"+id+"/reject",{method:"POST"})
+import {localSimulator} from "./localSimulator";
+
+const BASE = String(import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/,"");
+const API_KEY = String(import.meta.env.VITE_API_KEY || "");
+const FAILURE_LIMIT = 3;
+const OPEN_MS = 20000;
+const TIMEOUT_MS = 2500;
+
+let failures = 0;
+let circuitOpenUntil = 0;
+
+export const apiClientState = {
+  baseUrl: BASE,
+  liveConfigured: Boolean(BASE),
+  circuitOpen: () => Date.now() < circuitOpenUntil,
+  resetCircuit: () => { failures = 0; circuitOpenUntil = 0; }
+};
+
+function recordSuccess(){ failures = 0; circuitOpenUntil = 0; }
+function recordFailure(){
+  failures += 1;
+  if(failures >= FAILURE_LIMIT) circuitOpenUntil = Date.now() + OPEN_MS;
+}
+
+async function liveRequest(path, options={}){
+  const controller = new AbortController();
+  const timeout = setTimeout(()=>controller.abort(), TIMEOUT_MS);
+  try{
+    const headers = {"Content-Type":"application/json", ...(API_KEY ? {"X-API-Key":API_KEY}:{}), ...(options.headers||{})};
+    const response = await fetch(BASE + path, {...options,headers,signal:controller.signal});
+    if(!response.ok) throw new Error("HTTP "+response.status);
+    const data = await response.json();
+    recordSuccess();
+    return data;
+  }finally{ clearTimeout(timeout); }
+}
+
+async function withFallback(path, options, fallback){
+  if(!BASE || Date.now() < circuitOpenUntil) return fallback();
+  try{return await liveRequest(path,options);}
+  catch(error){recordFailure();return fallback(error);}
+}
+
+export const api = {
+  summary:()=>withFallback("/dashboard/summary",{},localSimulator.summary),
+  zones:()=>withFallback("/zones",{},localSimulator.zones),
+  logs:(level,search)=>withFallback("/logs?"+new URLSearchParams({...(level&&level!=="ALL"?{level}:{}),...(search?{search}:{})}),{},localSimulator.logs),
+  report:(period,start,end)=>withFallback("/reports/"+period,{},localSimulator.report),
+  status:()=>withFallback("/mock/status",{},localSimulator.status),
+  start:s=>withFallback("/mock/start",{method:"POST",body:JSON.stringify({speed:s})},localSimulator.start),
+  stop:()=>withFallback("/mock/stop",{method:"POST"},localSimulator.stop),
+  reset:()=>withFallback("/mock/reset",{method:"POST"},localSimulator.reset),
+  health:()=>withFallback("/healthz",{},localSimulator.health),
+  predictiveFlow:()=>withFallback("/api/v1/predict/propagation",{},localSimulator.predictiveFlow),
+  weather:()=>withFallback("/api/weather",{},localSimulator.weather),
+  schedule:()=>withFallback("/api/schedule",{},localSimulator.schedule),
+  context:()=>withFallback("/api/context",{},localSimulator.context),
+  riskHistory:()=>withFallback("/api/risk-history",{},localSimulator.riskHistory),
+  intelligenceReports:()=>withFallback("/api/reports",{},localSimulator.intelligenceReports),
+  incidents:()=>withFallback("/api/incidents",{},localSimulator.incidents),
+  sop:()=>withFallback("/api/sop",{},localSimulator.sop),
+  simulation:payload=>withFallback("/api/simulation",{method:"POST",body:JSON.stringify(payload)},localSimulator.simulation),
+  operatorChat:(message,history=[])=>withFallback("/api/operator-chat",{method:"POST",body:JSON.stringify({message,history})},()=>localSimulator.operatorChat(message,history)),
+  advisories:()=>withFallback("/api/advisories",{},localSimulator.advisories),
+  approve:id=>withFallback("/api/advisories/"+id+"/approve",{method:"POST"},()=>localSimulator.approve(id)),
+  reject:id=>withFallback("/api/advisories/"+id+"/reject",{method:"POST"},()=>localSimulator.reject(id))
 };

@@ -2,6 +2,11 @@ from datetime import datetime,timedelta,timezone
 import csv,io
 from fastapi import FastAPI,HTTPException,Query
 from fastapi.middleware.cors import CORSMiddleware
+from .config import get_settings
+from .security import APIKeyMiddleware
+from .v1_router import router as v1_router
+from .runtime import start_runtime,stop_runtime
+from .health import health_snapshot
 from fastapi.responses import StreamingResponse,JSONResponse
 from pydantic import BaseModel
 from .database import init_db,rows,one
@@ -13,9 +18,12 @@ from .services import (
     get_reports,get_incidents,simulate_scenario,generate_sop
 )
 
-app=FastAPI(title="AI Crowd Intelligence API",version="1.2.0")
-app.add_middleware(CORSMiddleware,allow_origins=["http://localhost:5173","http://127.0.0.1:5173"],
+app=FastAPI(title="AI Crowd Intelligence API",version="2.0.0")
+settings=get_settings()
+app.add_middleware(APIKeyMiddleware)
+app.add_middleware(CORSMiddleware,allow_origins=settings.cors_origins,
                    allow_credentials=True,allow_methods=["*"],allow_headers=["*"])
+app.include_router(v1_router,prefix="/api/v1")
 
 class StartBody(BaseModel):
     speed:str="normal"
@@ -25,13 +33,32 @@ def startup():
     init_db()
     info("SYSTEM","API started")
 
+@app.on_event("startup")
+async def production_runtime_startup():
+    await start_runtime()
+
+@app.on_event("shutdown")
+async def production_runtime_shutdown():
+    await stop_runtime()
+
 @app.get("/health")
 def health():
-    return {"status":"ok","version":"1.2.0","integration":"dashboard+predictive-intelligence"}
+    return {"status":"ok","version":"2.0.0","integration":"dashboard+predictive-intelligence"}
+
+@app.get("/healthz")
+async def healthz():
+    return await health_snapshot()
+
+@app.get("/readiness")
+async def readiness():
+    snapshot=await health_snapshot()
+    if snapshot["status"]!="ok":
+        raise HTTPException(status_code=503,detail=snapshot)
+    return snapshot
 
 @app.get("/api/health")
 def api_health():
-    return {"status":"ok","version":"1.2.0","integration":"dashboard+predictive-intelligence"}
+    return {"status":"ok","version":"2.0.0","integration":"dashboard+predictive-intelligence"}
 
 @app.get("/zones")
 def zones():

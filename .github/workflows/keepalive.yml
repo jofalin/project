@@ -7,6 +7,7 @@ on:
 
 jobs:
   ping:
+    if: ${{ secrets.RENDER_HEALTH_URL != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Ping production health endpoint

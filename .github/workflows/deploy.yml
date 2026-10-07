@@ -61,10 +61,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render backend deploy hook
+        if: ${{ secrets.RENDER_DEPLOY_HOOK != '' }}
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: test -n "$RENDER_DEPLOY_HOOK" && curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
+        run: curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
       - name: Trigger Vercel frontend deploy hook
+        if: ${{ secrets.VERCEL_DEPLOY_HOOK != '' }}
         env:
           VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
-        run: test -n "$VERCEL_DEPLOY_HOOK" && curl --fail --silent --show-error -X POST "$VERCEL_DEPLOY_HOOK"
+        run: curl --fail --silent --show-error -X POST "$VERCEL_DEPLOY_HOOK"

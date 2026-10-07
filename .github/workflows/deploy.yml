@@ -47,8 +47,7 @@ jobs:
       - name: Run Alembic migrations
         run: alembic -c backend/alembic.ini upgrade head
       - name: Run backend unit tests
-        working-directory: backend
-        run: pytest -q
+        run: PYTHONPATH="$GITHUB_WORKSPACE/backend" python -m pytest -q
       - uses: actions/setup-node@v4
         with:
           node-version: "20"

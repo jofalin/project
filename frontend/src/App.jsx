@@ -1,8 +1,9 @@
 import React,{useEffect,useState} from "react";
 import {Activity,Map,FileText,ScrollText,Radio,ShieldAlert,Database,RefreshCw,Play,Square,RotateCcw} from "lucide-react";
 import {api} from "./api";
+import Intelligence from "./Intelligence";
 
-const nav=[["dashboard","Dashboard",Activity],["map","SVG Risk Map",Map],["reports","Reports",FileText],["logs","System Logs",ScrollText],["mock","Mock Data Tool",Radio]];
+const nav=[["dashboard","Dashboard",Activity],["intelligence","Predictive Intelligence",Activity],["map","SVG Risk Map",Map],["reports","Reports",FileText],["logs","System Logs",ScrollText],["mock","Mock Data Tool",Radio]];
 const Badge=({level})=><span className={"badge "+String(level).toLowerCase()}>{level}</span>;
 const Stat=({label,value,Icon})=><div className="stat"><Icon/><div><small>{label}</small><strong>{value}</strong></div></div>;
 
@@ -52,4 +53,7 @@ function Mock(){
  return <section><div className="hero"><div><small>SIMULATION CONTROL</small><h2>Generate venue activity</h2><p>Crowd counts, density, risk changes, alerts, events and logs.</p></div><div className={s.running?"orb live":"orb"}>{s.running?"LIVE":"IDLE"}</div></div><div className="cols"><div className="panel"><h2>Simulation Speed</h2><div className="speed">{["slow","normal","fast"].map(x=><button className={speed===x?"active":""} onClick={()=>setSpeed(x)} key={x}>{x}</button>)}</div><div className="actions"><button disabled={s.running} onClick={()=>api.start(speed)}><Play/> Start Simulation</button><button disabled={!s.running} onClick={()=>api.stop()}><Square/> Stop Simulation</button><button onClick={()=>api.reset()}><RotateCcw/> Reset Data</button></div></div><div className="panel"><h2>Generated Signals</h2><ul><li>Live crowd count changes</li><li>Density and risk transitions</li><li>Automatic high-risk alerts</li><li>Historical event records</li><li>INFO / WARNING / ERROR logs</li><li>SQLite persistence</li></ul></div></div></section>
 }
 
-export default function App(){const [page,setPage]=useState("dashboard");return <Layout page={page} setPage={setPage}>{page==="dashboard"?<Dashboard/>:page==="map"?<RiskMap/>:page==="reports"?<Reports/>:page==="logs"?<Logs/>:<Mock/>}</Layout>}
+export default function App(){
+ const [page,setPage]=useState("dashboard");
+ return <Layout page={page} setPage={setPage}>{page==="dashboard"?<Dashboard/>:page==="intelligence"?<Intelligence/>:page==="map"?<RiskMap/>:page==="reports"?<Reports/>:page==="logs"?<Logs/>:<Mock/>}</Layout>
+}

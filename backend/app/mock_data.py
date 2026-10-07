@@ -45,14 +45,20 @@ async def start(value="normal"):
         task=asyncio.create_task(loop())
 
 def stop():
-    global running
+    global running,task
     running=False
+    if task and not task.done():
+        task.cancel()
+    task=None
 
 def status(): return {"running":running,"speed":speed}
 
 def reset():
-    global running
+    global running,task
     running=False
+    if task and not task.done():
+        task.cancel()
+    task=None
     from .database import risk
     import random
     stamp=now()

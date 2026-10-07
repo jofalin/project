@@ -63,8 +63,18 @@ jobs:
       - name: Trigger Render backend deploy hook
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
-        run: test -n "$RENDER_DEPLOY_HOOK" && curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
+            curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK"
+          else
+            echo "RENDER_DEPLOY_HOOK is not configured; backend deploy skipped."
+          fi
       - name: Trigger Vercel frontend deploy hook
         env:
           VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
-        run: test -n "$VERCEL_DEPLOY_HOOK" && curl --fail --silent --show-error -X POST "$VERCEL_DEPLOY_HOOK"
+        run: |
+          if [ -n "$VERCEL_DEPLOY_HOOK" ]; then
+            curl --fail --silent --show-error -X POST "$VERCEL_DEPLOY_HOOK"
+          else
+            echo "VERCEL_DEPLOY_HOOK is not configured; frontend deploy skipped."
+          fi

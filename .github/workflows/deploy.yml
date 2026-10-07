@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgis/postgis:16-3.4
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_DB: crowdops
           POSTGRES_USER: crowdops

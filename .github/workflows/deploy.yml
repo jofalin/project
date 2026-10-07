@@ -36,6 +36,7 @@ jobs:
       DATABASE_URL: postgresql+asyncpg://crowdops:crowdops@localhost:5432/crowdops
       REDIS_URL: redis://localhost:6379/0
       API_KEYS: ci-key
+      PYTHONPATH: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

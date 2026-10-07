@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crowd Safety // Command Intelligence</title>
+<style>
+:root{--bg:#071018;--panel:#0e1b26;--line:#203545;--text:#edf5f7;--muted:#8fa5ad;--accent:#43e6b5;--warn:#ffbd4a;--danger:#ff5570}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#123044 0,#071018 45%);color:var(--text);font:14px Inter,system-ui,sans-serif}main{max-width:1400px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}.eyebrow{color:var(--accent);letter-spacing:2px;font-weight:800}.title{font-size:34px;font-weight:900}.sub{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:rgba(14,27,38,.92);border:1px solid var(--line);border-radius:14px;padding:18px}.span3{grid-column:span 3}.span4{grid-column:span 4}.span6{grid-column:span 6}.span12{grid-column:span 12}h2{font-size:15px;margin:0 0 14px}.metric{font-size:28px;font-weight:900}.muted{color:var(--muted)}.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #ffffff0d}.tag{padding:4px 8px;border-radius:999px;background:#ffffff10}.high,.critical{color:var(--danger)}.medium{color:var(--warn)}.low{color:var(--accent)}#chat{height:230px;overflow:auto;background:#08131b;border-radius:10px;padding:12px}.msg{margin:7px 0;padding:9px 11px;border-radius:9px;background:#ffffff08}.user{border-left:3px solid var(--accent)}input{width:calc(100% - 82px);padding:12px;background:#071018;border:1px solid var(--line);color:white;border-radius:8px}button{padding:12px 16px;border:0;border-radius:8px;background:var(--accent);font-weight:800;cursor:pointer}.advice{border:1px solid #ffffff10;padding:12px;border-radius:10px;margin:8px 0}.advice button{margin-right:7px;padding:8px 11px}@media(max-width:900px){.span3,.span4,.span6{grid-column:span 12}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><div><div class="eyebrow">CROWD SAFETY // ONE</div><div class="title">Command Intelligence</div><div class="sub">Predict → explain → recommend → operator review</div></div><div class="tag">HUMAN-IN-THE-LOOP</div></div>
+<div class="grid">
+<section class="card span4"><h2>WEATHER CONTEXT</h2><div id="weather"></div></section>
+<section class="card span4"><h2>EVENT SCHEDULE</h2><div id="schedule"></div></section>
+<section class="card span4"><h2>TOP RISK</h2><div id="risk"></div></section>
+<section class="card span6"><h2>PREDICTIVE CROWD FLOW</h2><div id="flow"></div></section>
+<section class="card span6"><h2>ADVISORY GENERATOR</h2><div id="advisories"></div></section>
+<section class="card span12"><h2>OPERATOR AI CHAT</h2><div id="chat"><div class="msg">Ask about risk, congestion, weather, schedule, or recommendations.</div></div><div style="margin-top:10px"><input id="question" placeholder="e.g. Where is congestion likely to move next?"><button onclick="ask()">Ask</button></div></section>
+</div>
+</main>
+<script>
+const API=location.protocol==='file:'?'http://localhost:8000/api':'/api';
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function get(p){const r=await fetch(API+p);if(!r.ok)throw Error('API error');return r.json()}
+async function load(){
+ try{
+ const [w,s,c,f,a]=await Promise.all([get('/weather'),get('/schedule'),get('/context'),get('/predictive-flow'),get('/advisories')]);
+ weather.innerHTML='<div class="metric">'+esc(w.condition)+'</div><div>'+w.temperature_c+'°C · '+w.rain_mm+' mm rain · '+w.visibility_km+' km visibility</div><p class="muted">'+esc(w.context)+'</p><b>Modifier +'+w.risk_modifier.toFixed(2)+'</b>';
+ const e=s.current_event||s.next_event;
+ schedule.innerHTML=e?'<b>'+esc(e.event)+'</b><div>'+esc(e.expected_surge)+' surge · '+e.minutes_until+' min</div><div class="muted">'+esc(e.affected_zones.join(', '))+'</div>':'No scheduled event';
+ const top=Object.entries(c.zones).sort((a,b)=>b[1].density-a[1].density)[0];
+ risk.innerHTML='<div class="metric">'+top[1].density+'%</div><div>'+esc(top[0])+' · '+esc(top[1].risk)+'</div><div class="muted">Trend +'+top[1].trend+'%</div>';
+ flow.innerHTML=f.predictions.map(p=>'<div class="row"><div><b>'+esc(p.source_zone)+' → '+esc(p.target_zone)+'</b><div class="muted">'+esc(p.reason)+'</div></div><div><b class="'+p.severity.toLowerCase()+'">'+p.severity+'</b><br>'+Math.round(p.probability*100)+'% · '+p.eta_seconds+'s</div></div>').join('');
+ advisories.innerHTML=a.advisories.length?a.advisories.map(x=>'<div class="advice"><b>'+esc(x.category)+'</b><div>'+esc(x.prediction)+'</div><p>'+esc(x.recommendation)+'</p><button onclick="reviewAdvice(\\''+x.id+'\\',true)">Approve</button><button onclick="reviewAdvice(\\''+x.id+'\\',false)">Reject</button></div>').join(''):'No current advisory';
+ }catch(e){document.querySelector('.sub').textContent='Backend unavailable — start FastAPI on port 8000.'}
+}
+async function ask(){const q=question.value.trim();if(!q)return;chat.innerHTML+='<div class="msg user">'+esc(q)+'</div>';question.value='';try{const r=await fetch(API+'/operator-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,history:[]})});const d=await r.json();chat.innerHTML+='<div class="msg">'+esc(d.answer)+'<div class="muted">Source: '+esc(d.source)+'</div></div>'}catch(e){chat.innerHTML+='<div class="msg">Backend unavailable.</div>'}chat.scrollTop=chat.scrollHeight}
+async function reviewAdvice(id,ok){await fetch(API+'/advisories/'+id+'/'+(ok?'approve':'reject'),{method:'POST'});load()}
+question.addEventListener('keydown',e=>{if(e.key==='Enter')ask()});load();
+</script>
+</body>
+</html>

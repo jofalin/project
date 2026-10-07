@@ -142,3 +142,92 @@ def approve_advisory(advisory_id):
 def reject_advisory(advisory_id):
     STATE[advisory_id] = "REJECTED"
     return {"id": advisory_id, "status": "REJECTED"}
+
+
+def get_risk_history():
+    return [
+        {"time": "20:00", "gate_a": 46, "zone_b": 28, "central": 22, "exit_c": 12},
+        {"time": "20:05", "gate_a": 55, "zone_b": 34, "central": 25, "exit_c": 13},
+        {"time": "20:10", "gate_a": 64, "zone_b": 42, "central": 31, "exit_c": 15},
+        {"time": "20:15", "gate_a": 73, "zone_b": 49, "central": 36, "exit_c": 17},
+        {"time": "20:20", "gate_a": 82, "zone_b": 58, "central": 41, "exit_c": 18},
+    ]
+
+def get_reports():
+    return [
+        {"id": "R-101", "type": "POLICE", "message": "Crowd gathering near Gate A.", "age_seconds": 120},
+        {"id": "R-102", "type": "CITIZEN", "message": "Passage near Zone B is partially blocked.", "age_seconds": 75},
+        {"id": "R-103", "type": "VOLUNTEER", "message": "High density observed near Central Area.", "age_seconds": 35},
+    ]
+
+def get_incidents(context=None):
+    context = context or build_context()
+    incidents = []
+    for p in predict_flow(context):
+        if p["severity"] in {"HIGH", "CRITICAL"}:
+            incidents.append({
+                "time": context["timestamp"],
+                "severity": p["severity"],
+                "title": f"{p['source_zone']} → {p['target_zone']}",
+                "message": f"{p['probability']*100:.0f}% congestion probability in {p['eta_seconds']} seconds.",
+            })
+    if context["weather"]["risk_modifier"] > .1:
+        incidents.append({
+            "time": context["timestamp"],
+            "severity": "WATCH",
+            "title": "Weather context",
+            "message": "Rain may slow movement and increase slip/crowd-management risk.",
+        })
+    return incidents
+
+def simulate_scenario(overrides):
+    context = build_context()
+    zones = {name: dict(data) for name, data in context["zones"].items()}
+    for name, changes in (overrides.get("zones") or {}).items():
+        if name in zones:
+            if "density" in changes:
+                zones[name]["density"] = max(0, min(100, float(changes["density"])))
+            if "trend" in changes:
+                zones[name]["trend"] = float(changes["trend"])
+            if "direction" in changes:
+                zones[name]["direction"] = changes["direction"]
+    context["zones"] = zones
+    if "weather_modifier" in overrides:
+        context["weather"]["risk_modifier"] = max(0, min(1, float(overrides["weather_modifier"])))
+    predictions = predict_flow(context)
+    return {
+        "inputs": overrides,
+        "predictions": predictions,
+        "highest_risk_zone": max(zones.items(), key=lambda x: x[1]["density"])[0],
+        "summary": "Scenario indicates elevated downstream pressure." if any(p["severity"] in {"HIGH","CRITICAL"} for p in predictions) else "Scenario remains within lower predicted flow pressure.",
+    }
+
+def generate_sop(context=None):
+    context = context or build_context()
+    predictions = predict_flow(context)
+    high = [p for p in predictions if p["severity"] in {"HIGH", "CRITICAL"}]
+    target = high[0] if high else (predictions[0] if predictions else None)
+    if target:
+        observation = f"{target['source_zone']} is creating downstream pressure toward {target['target_zone']}."
+        trend = target["reason"]
+        prediction = f"{target['target_zone']} has {target['probability']*100:.0f}% predicted congestion probability in about {target['eta_seconds']} seconds."
+        recommendation = [
+            f"Position trained volunteers near {target['target_zone']}.",
+            f"Monitor the route from {target['source_zone']} to {target['target_zone']}.",
+            "Prepare an alternate routing/public guidance message if pressure continues."
+        ]
+    else:
+        observation = "No high-risk propagation is currently detected."
+        trend = "Current zone trends remain comparatively stable."
+        prediction = "No immediate downstream congestion escalation is predicted."
+        recommendation = ["Continue routine monitoring and keep the operator dashboard active."]
+    return {
+        "status": "DRAFT",
+        "human_review_required": True,
+        "observation": observation,
+        "trend": trend,
+        "prediction": prediction,
+        "recommendations": recommendation,
+        "expected_benefit": "Reduce crowd concentration and improve response readiness before congestion escalates.",
+        "approval_note": "Operator must review, edit if needed, and approve before any real-world action."
+    }

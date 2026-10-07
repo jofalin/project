@@ -34,10 +34,10 @@ function RiskMap(){
 }
 
 function Reports(){
- const [period,setPeriod]=useState("daily"),[d,setD]=useState(null);
- useEffect(()=>{api.report(period).then(setD).catch(()=>{})},[period]);
- const csv=()=>window.open("http://localhost:8000/reports/"+period+"/csv","_blank");
- return <section><div className="toolbar"><div className="tabs">{["daily","weekly","monthly"].map(p=><button className={period===p?"active":""} onClick={()=>setPeriod(p)} key={p}>{p}</button>)}</div><div><button onClick={csv}>Export CSV</button><button onClick={()=>print()}>Print</button></div></div>{d&&<div className="report"><small>COMMAND REPORT</small><h2>{d.period} Crowd Intelligence Report</h2><div className="metrics">{Object.entries(d.metrics).map(([k,v])=><div key={k}><small>{k.replaceAll("_"," ")}</small><strong>{v}{k.includes("density")||k.includes("utilization")?"%":""}</strong></div>)}</div><div className="panel"><h2>Zone Utilization</h2>{d.zone_utilization.map(z=><div className="util" key={z.name}><span>{z.name}</span><div><i style={{width:Math.min(z.utilization,100)+"%"}}/></div><b>{z.utilization}%</b></div>)}</div></div>}</section>
+ const [period,setPeriod]=useState("daily"),[d,setD]=useState(null),[startDate,setStartDate]=useState(""),[endDate,setEndDate]=useState("");
+ useEffect(()=>{api.report(period,startDate,endDate).then(setD).catch(()=>{})},[period,startDate,endDate]);
+ const csv=()=>window.open("http://localhost:8000/reports/"+period+"/csv?"+new URLSearchParams({...(startDate?{start_date:startDate}:{}),...(endDate?{end_date:endDate}:{})}),"_blank");
+ return <section><div className="toolbar"><div className="tabs">{["daily","weekly","monthly"].map(p=><button className={period===p?"active":""} onClick={()=>setPeriod(p)} key={p}>{p}</button>)}</div><div><input type="date" value={startDate} onChange={e=>setStartDate(e.target.value)}/><input type="date" value={endDate} onChange={e=>setEndDate(e.target.value)}/><button onClick={csv}>Export CSV</button><button onClick={()=>print()}>Print</button></div></div>{d&&<div className="report"><small>COMMAND REPORT</small><h2>{d.period} Crowd Intelligence Report</h2><div className="metrics">{Object.entries(d.metrics).map(([k,v])=><div key={k}><small>{k.replaceAll("_"," ")}</small><strong>{v}{k.includes("density")||k.includes("utilization")?"%":""}</strong></div>)}</div><div className="panel"><h2>Zone Utilization</h2>{d.zone_utilization.map(z=><div className="util" key={z.name}><span>{z.name}</span><div><i style={{width:Math.min(z.utilization,100)+"%"}}/></div><b>{z.utilization}%</b></div>)}</div></div>}</section>
 }
 
 function Logs(){

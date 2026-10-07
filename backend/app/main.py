@@ -2,7 +2,7 @@ from datetime import datetime,timedelta,timezone
 import csv,io
 from fastapi import FastAPI,HTTPException,Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel
 from .database import init_db,rows,one
 from .logger import info,error
@@ -59,11 +59,20 @@ def summary():
     return {"total_crowd_count":sum(z["current_count"] for z in zs),"active_zones":len(zs),
             "risk_counts":counts,"active_alerts":active,"zones":zs,"recent_alerts":al,"recent_events":ev}
 
-def period_range():
-    end=datetime.now(timezone.utc); return (end-timedelta(days=1)).isoformat(),(end+timedelta(seconds=1)).isoformat()
+def period_range(period, start_date=None, end_date=None):
+    if start_date:
+        start=datetime.fromisoformat(start_date).replace(tzinfo=timezone.utc)
+    else:
+        days={"Daily":1,"Weekly":7,"Monthly":30}[period]
+        start=datetime.now(timezone.utc)-timedelta(days=days)
+    if end_date:
+        end=datetime.fromisoformat(end_date).replace(tzinfo=timezone.utc)+timedelta(days=1)
+    else:
+        end=datetime.now(timezone.utc)+timedelta(seconds=1)
+    return start.isoformat(),end.isoformat()
 
-def report(period):
-    start,end=period_range()
+def report(period,start_date=None,end_date=None):
+    start,end=period_range(period,start_date,end_date)
     stat=one("SELECT COALESCE(AVG(density_score),0) avg,COALESCE(MAX(crowd_count),0) peak FROM events WHERE timestamp>=? AND timestamp<?",(start,end))
     alerts_n=one("SELECT COUNT(*) n FROM alerts WHERE created_at>=? AND created_at<?",(start,end))["n"]
     high=one("SELECT COUNT(*) n FROM events WHERE risk_level='High' AND timestamp>=? AND timestamp<?",(start,end))["n"]
@@ -75,13 +84,13 @@ def report(period):
             "zone_utilization":util}
 
 @app.get("/reports/{period}")
-def get_report(period:str):
+def get_report(period:str,start_date:str|None=None,end_date:str|None=None):
     if period.lower() not in ("daily","weekly","monthly"): raise HTTPException(404,"Unknown report")
-    return report(period.title())
+    return report(period.title(),start_date,end_date)
 
 @app.get("/reports/{period}/csv")
-def report_csv(period:str):
-    data=get_report(period)
+def report_csv(period:str,start_date:str|None=None,end_date:str|None=None):
+    data=get_report(period,start_date,end_date)
     out=io.StringIO(); w=csv.writer(out)
     w.writerow(["Report",data["period"]])
     for k,v in data["metrics"].items(): w.writerow([k.replace("_"," ").title(),v])
@@ -108,4 +117,4 @@ def mock_reset():
 @app.exception_handler(Exception)
 async def handle_error(request,exc):
     error("API",f"{request.method} {request.url.path}: {exc}")
-    return HTTPException(500,"Internal server error")
+    return JSONResponse(status_code=500,content={"detail":"Internal server error"})

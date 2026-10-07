@@ -6,36 +6,66 @@
 <title>Crowd Safety // Command Intelligence</title>
 <style>
 :root{--bg:#071018;--panel:#0e1b26;--line:#203545;--text:#edf5f7;--muted:#8fa5ad;--accent:#43e6b5;--warn:#ffbd4a;--danger:#ff5570}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#123044 0,#071018 45%);color:var(--text);font:14px Inter,system-ui,sans-serif}main{max-width:1400px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;align-items:end;margin-bottom:22px}.eyebrow{color:var(--accent);letter-spacing:2px;font-weight:800}.title{font-size:34px;font-weight:900}.sub{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:rgba(14,27,38,.92);border:1px solid var(--line);border-radius:14px;padding:18px}.span3{grid-column:span 3}.span4{grid-column:span 4}.span6{grid-column:span 6}.span12{grid-column:span 12}h2{font-size:15px;margin:0 0 14px}.metric{font-size:28px;font-weight:900}.muted{color:var(--muted)}.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #ffffff0d}.tag{padding:4px 8px;border-radius:999px;background:#ffffff10}.high,.critical{color:var(--danger)}.medium{color:var(--warn)}.low{color:var(--accent)}#chat{height:230px;overflow:auto;background:#08131b;border-radius:10px;padding:12px}.msg{margin:7px 0;padding:9px 11px;border-radius:9px;background:#ffffff08}.user{border-left:3px solid var(--accent)}input{width:calc(100% - 82px);padding:12px;background:#071018;border:1px solid var(--line);color:white;border-radius:8px}button{padding:12px 16px;border:0;border-radius:8px;background:var(--accent);font-weight:800;cursor:pointer}.advice{border:1px solid #ffffff10;padding:12px;border-radius:10px;margin:8px 0}.advice button{margin-right:7px;padding:8px 11px}@media(max-width:900px){.span3,.span4,.span6{grid-column:span 12}}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#123044 0,#071018 45%);color:var(--text);font:14px Inter,system-ui,sans-serif}main{max-width:1500px;margin:auto;padding:26px}.top{display:flex;justify-content:space-between;align-items:end;margin-bottom:18px}.eyebrow{color:var(--accent);letter-spacing:2px;font-weight:800}.title{font-size:34px;font-weight:900}.sub{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:13px}.card{background:rgba(14,27,38,.94);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 10px 30px #0003}.span3{grid-column:span 3}.span4{grid-column:span 4}.span5{grid-column:span 5}.span6{grid-column:span 6}.span7{grid-column:span 7}.span8{grid-column:span 8}.span12{grid-column:span 12}h2{font-size:14px;margin:0 0 12px;letter-spacing:.5px}.metric{font-size:28px;font-weight:900}.muted{color:var(--muted)}.row{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #ffffff0d}.tag{padding:4px 8px;border-radius:999px;background:#ffffff10}.high,.critical{color:var(--danger)}.medium,.watch{color:var(--warn)}.low{color:var(--accent)}.map{display:grid;grid-template-columns:1fr;gap:8px}.zone{padding:13px;border:1px solid var(--line);border-radius:10px;background:#09151d;position:relative}.zone:after{content:'↓';position:absolute;left:50%;bottom:-15px;color:var(--muted);z-index:2}.zone:last-child:after{display:none}.bar{height:7px;background:#ffffff0b;border-radius:10px;overflow:hidden;margin-top:7px}.bar i{display:block;height:100%;background:currentColor}.chart{height:150px;display:flex;align-items:end;gap:8px;border-bottom:1px solid var(--line);padding:8px}.barcol{flex:1;display:flex;flex-direction:column;justify-content:end;height:100%}.barcol i{display:block;border-radius:5px 5px 0 0;background:var(--accent);min-height:3px}.chartlabel{font-size:10px;text-align:center;color:var(--muted);margin-top:4px}.advice,.report,.incident{border:1px solid #ffffff10;padding:11px;border-radius:10px;margin:7px 0}.advice button,button{margin-right:6px;padding:8px 11px;border:0;border-radius:8px;background:var(--accent);font-weight:800;cursor:pointer}.reject{background:#2a3540!important;color:white}.sop li{margin:7px 0}.simgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.simgrid input{width:100%;padding:9px;background:#071018;border:1px solid var(--line);color:white;border-radius:7px}.simout{margin-top:10px}.timeline{max-height:180px;overflow:auto}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;margin-right:7px}#chat{height:190px;overflow:auto;background:#08131b;border-radius:10px;padding:10px}.msg{margin:7px 0;padding:9px 11px;border-radius:9px;background:#ffffff08}.user{border-left:3px solid var(--accent)}#question{width:calc(100% - 75px);padding:11px;background:#071018;border:1px solid var(--line);color:white;border-radius:8px}
+@media(max-width:1050px){.span3,.span4,.span5,.span6,.span7,.span8{grid-column:span 12}}@media(min-width:1051px){.venue{min-height:430px}}
 </style>
 </head>
 <body>
 <main>
-<div class="top"><div><div class="eyebrow">CROWD SAFETY // ONE</div><div class="title">Command Intelligence</div><div class="sub">Predict → explain → recommend → operator review</div></div><div class="tag">HUMAN-IN-THE-LOOP</div></div>
+<div class="top"><div><div class="eyebrow">CROWD SAFETY // ONE</div><div class="title">Command Intelligence</div><div class="sub">Sense → understand → predict → recommend → human decision</div></div><div class="tag">LIVE DEMO · HUMAN-IN-THE-LOOP</div></div>
 <div class="grid">
-<section class="card span4"><h2>WEATHER CONTEXT</h2><div id="weather"></div></section>
-<section class="card span4"><h2>EVENT SCHEDULE</h2><div id="schedule"></div></section>
-<section class="card span4"><h2>TOP RISK</h2><div id="risk"></div></section>
+<section class="card span3"><h2>WEATHER CONTEXT</h2><div id="weather"></div></section>
+<section class="card span3"><h2>EVENT SCHEDULE</h2><div id="schedule"></div></section>
+<section class="card span3"><h2>TOP RISK</h2><div id="risk"></div></section>
+<section class="card span3"><h2>ACTIVE ALERTS</h2><div id="alertCount"></div></section>
+
+<section class="card span5 venue"><h2>VENUE RISK HEATMAP</h2><div id="venueMap" class="map"></div></section>
+<section class="card span7"><h2>RISK / CROWD TREND</h2><div id="historyChart" class="chart"></div><div class="muted">Recent simulated density history by zone</div></section>
+
 <section class="card span6"><h2>PREDICTIVE CROWD FLOW</h2><div id="flow"></div></section>
+<section class="card span6"><h2>INCIDENT & ALERT TIMELINE</h2><div id="incidents" class="timeline"></div></section>
+
+<section class="card span6"><h2>DYNAMIC SOP GENERATOR</h2><div id="sop" class="sop"></div></section>
 <section class="card span6"><h2>ADVISORY GENERATOR</h2><div id="advisories"></div></section>
-<section class="card span12"><h2>OPERATOR AI CHAT</h2><div id="chat"><div class="msg">Ask about risk, congestion, weather, schedule, or recommendations.</div></div><div style="margin-top:10px"><input id="question" placeholder="e.g. Where is congestion likely to move next?"><button onclick="ask()">Ask</button></div></section>
+
+<section class="card span5"><h2>WHAT-IF SIMULATION</h2><div class="simgrid">
+<label>Gate A density<input id="simDensity" type="number" value="95" min="0" max="100"></label>
+<label>Gate A trend<input id="simTrend" type="number" value="18"></label>
+<label>Weather modifier<input id="simWeather" type="number" value="0.20" min="0" max="1" step="0.05"></label>
+<label>Scenario<input id="simLabel" value="Rain + crowd surge"></label>
+</div><br><button onclick="simulate()">Run Simulation</button><div id="simout" class="simout muted">Change inputs and run a scenario.</div></section>
+
+<section class="card span7"><h2>MULTI-MODAL REPORTS</h2><div id="reports"></div></section>
+
+<section class="card span12"><h2>OPERATOR AI CHAT</h2><div id="chat"><div class="msg">Ask about risk, congestion, weather, schedule, reports, simulation, or recommendations.</div></div><div style="margin-top:9px"><input id="question" placeholder="e.g. Where is congestion likely to move next?"><button onclick="ask()">Ask</button></div></section>
 </div>
 </main>
 <script>
 const API=location.protocol==='file:'?'http://localhost:8000/api':'/api';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 async function get(p){const r=await fetch(API+p);if(!r.ok)throw Error('API error');return r.json()}
+function zoneClass(r){return String(r).toLowerCase()}
 async function load(){
  try{
- const [w,s,c,f,a]=await Promise.all([get('/weather'),get('/schedule'),get('/context'),get('/predictive-flow'),get('/advisories')]);
- weather.innerHTML='<div class="metric">'+esc(w.condition)+'</div><div>'+w.temperature_c+'°C · '+w.rain_mm+' mm rain · '+w.visibility_km+' km visibility</div><p class="muted">'+esc(w.context)+'</p><b>Modifier +'+w.risk_modifier.toFixed(2)+'</b>';
- const e=s.current_event||s.next_event;
- schedule.innerHTML=e?'<b>'+esc(e.event)+'</b><div>'+esc(e.expected_surge)+' surge · '+e.minutes_until+' min</div><div class="muted">'+esc(e.affected_zones.join(', '))+'</div>':'No scheduled event';
- const top=Object.entries(c.zones).sort((a,b)=>b[1].density-a[1].density)[0];
- risk.innerHTML='<div class="metric">'+top[1].density+'%</div><div>'+esc(top[0])+' · '+esc(top[1].risk)+'</div><div class="muted">Trend +'+top[1].trend+'%</div>';
- flow.innerHTML=f.predictions.map(p=>'<div class="row"><div><b>'+esc(p.source_zone)+' → '+esc(p.target_zone)+'</b><div class="muted">'+esc(p.reason)+'</div></div><div><b class="'+p.severity.toLowerCase()+'">'+p.severity+'</b><br>'+Math.round(p.probability*100)+'% · '+p.eta_seconds+'s</div></div>').join('');
- advisories.innerHTML=a.advisories.length?a.advisories.map(x=>'<div class="advice"><b>'+esc(x.category)+'</b><div>'+esc(x.prediction)+'</div><p>'+esc(x.recommendation)+'</p><button onclick="reviewAdvice(\\''+x.id+'\\',true)">Approve</button><button onclick="reviewAdvice(\\''+x.id+'\\',false)">Reject</button></div>').join(''):'No current advisory';
+  const [w,s,c,f,a,h,r,i,so]=await Promise.all([get('/weather'),get('/schedule'),get('/context'),get('/predictive-flow'),get('/advisories'),get('/risk-history'),get('/reports'),get('/incidents'),get('/sop')]);
+  weather.innerHTML='<div class="metric">'+esc(w.condition)+'</div><div>'+w.temperature_c+'°C · '+w.rain_mm+' mm · '+w.visibility_km+' km</div><p class="muted">'+esc(w.context)+'</p><b>Modifier +'+w.risk_modifier.toFixed(2)+'</b>';
+  const e=s.current_event||s.next_event;
+  schedule.innerHTML=e?'<b>'+esc(e.event)+'</b><div>'+esc(e.expected_surge)+' surge · '+e.minutes_until+' min</div><div class="muted">'+esc(e.affected_zones.join(', '))+'</div>':'No scheduled event';
+  const top=Object.entries(c.zones).sort((x,y)=>y[1].density-x[1].density)[0];
+  risk.innerHTML='<div class="metric">'+top[1].density+'%</div><div>'+esc(top[0])+' · <b class="'+zoneClass(top[1].risk)+'">'+esc(top[1].risk)+'</b></div><div class="muted">Trend +'+top[1].trend+'%</div>';
+  alertCount.innerHTML='<div class="metric">'+i.incidents.length+'</div><div class="muted">active risk/context alerts</div>';
+  venueMap.innerHTML=Object.entries(c.zones).map(([n,z])=>'<div class="zone"><b>'+esc(n)+'</b><span style="float:right" class="'+zoneClass(z.risk)+'">'+esc(z.risk)+'</span><div>'+z.density+'% density · trend '+(z.trend>=0?'+':'')+z.trend+'%</div><div class="bar '+zoneClass(z.risk)+'"><i style="width:'+z.density+'%"></i></div></div>').join('');
+  const maxH=100; historyChart.innerHTML=h.history.map(x=>'<div class="barcol"><i style="height:'+x.gate_a/maxH*100+'%"></i><div class="chartlabel">'+x.time+'</div></div>').join('');
+  flow.innerHTML=f.predictions.map(p=>'<div class="row"><div><b>'+esc(p.source_zone)+' → '+esc(p.target_zone)+'</b><div class="muted">'+esc(p.reason)+'</div></div><div><b class="'+p.severity.toLowerCase()+'">'+p.severity+'</b><br>'+Math.round(p.probability*100)+'% · '+p.eta_seconds+'s</div></div>').join('');
+  incidents.innerHTML=i.incidents.length?i.incidents.map(x=>'<div class="incident"><span class="dot '+zoneClass(x.severity)+'"></span><b>'+esc(x.severity)+' · '+esc(x.title)+'</b><div class="muted">'+esc(x.message)+'</div></div>').join(''):'No active incidents';
+  sop.innerHTML='<b>Observation</b><p>'+esc(so.observation)+'</p><b>Trend</b><p>'+esc(so.trend)+'</p><b>Prediction</b><p>'+esc(so.prediction)+'</p><b>Recommended actions</b><ul>'+so.recommendations.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><p class="muted">'+esc(so.approval_note)+'</p>';
+  advisories.innerHTML=a.advisories.length?a.advisories.map(x=>'<div class="advice"><b>'+esc(x.category)+'</b><div>'+esc(x.prediction)+'</div><p>'+esc(x.recommendation)+'</p><button onclick="reviewAdvice(\''+x.id+'\',true)">Approve</button><button class="reject" onclick="reviewAdvice(\''+x.id+'\',false)">Reject</button></div>').join(''):'No current advisory';
+  reports.innerHTML=r.reports.map(x=>'<div class="report"><b>'+esc(x.type)+'</b> · '+x.age_seconds+'s ago<div>'+esc(x.message)+'</div></div>').join('');
  }catch(e){document.querySelector('.sub').textContent='Backend unavailable — start FastAPI on port 8000.'}
+}
+async function simulate(){
+ const body={label:simLabel.value,weather_modifier:Number(simWeather.value),zones:{'Gate A':{density:Number(simDensity.value),trend:Number(simTrend.value),direction:'Zone B'}}};
+ try{const d=await fetch(API+'/simulation',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(x=>x.json());simout.innerHTML='<b>'+esc(d.summary)+'</b><div style="margin-top:8px">Highest pressure: '+esc(d.highest_risk_zone)+'</div>'+d.predictions.map(p=>'<div class="row"><span>'+esc(p.source_zone)+' → '+esc(p.target_zone)+'</span><b class="'+p.severity.toLowerCase()+'">'+Math.round(p.probability*100)+'% / '+p.eta_seconds+'s</b></div>').join('')}catch(e){simout.textContent='Simulation unavailable.'}
 }
 async function ask(){const q=question.value.trim();if(!q)return;chat.innerHTML+='<div class="msg user">'+esc(q)+'</div>';question.value='';try{const r=await fetch(API+'/operator-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,history:[]})});const d=await r.json();chat.innerHTML+='<div class="msg">'+esc(d.answer)+'<div class="muted">Source: '+esc(d.source)+'</div></div>'}catch(e){chat.innerHTML+='<div class="msg">Backend unavailable.</div>'}chat.scrollTop=chat.scrollHeight}
 async function reviewAdvice(id,ok){await fetch(API+'/advisories/'+id+'/'+(ok?'approve':'reject'),{method:'POST'});load()}

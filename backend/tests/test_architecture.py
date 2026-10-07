@@ -9,7 +9,7 @@ from app.sop_engine import transition_state
 from app.v1_schemas import AdvisoryState, OperatorAdvisory
 
 def test_time_to_capacity():
-    assert time_to_capacity(1000, 800, 80, 20) == 5
+    assert time_to_capacity(1000, 800, 80, 20) == 200 / 60
     assert time_to_capacity(1000, 800, 20, 20) is None
 
 def test_weather_reduces_exit_velocity():

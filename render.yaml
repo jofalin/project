@@ -3,8 +3,9 @@ services:
     name: crowd-ops-api
     runtime: python
     plan: free
-    autoDeploy: false
-    buildCommand: pip install -r backend/requirements.txt && alembic -c backend/alembic.ini upgrade head
+    autoDeployTrigger: off
+    buildCommand: pip install -r backend/requirements.txt
+    preDeployCommand: alembic -c backend/alembic.ini upgrade head
     startCommand: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
     healthCheckPath: /healthz
     envVars:

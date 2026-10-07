@@ -67,7 +67,7 @@ def upgrade():
     op.create_table(
         "advisories",
         sa.Column("incident_id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("state", postgresql.ENUM(name="advisory_state"), nullable=False, server_default="PROPOSED"),
+        sa.Column("state", postgresql.ENUM(name="advisory_state", create_type=False), nullable=False, server_default="PROPOSED"),
         sa.Column("severity", sa.String(16), nullable=False),
         sa.Column("target_zone_ids", postgresql.JSONB(), nullable=False),
         sa.Column("recommended_sop_id", sa.String(128), nullable=False),

@@ -11,12 +11,14 @@ from .v1_schemas import (
     PropagationRequest, PropagationResponse, PropagationSegment,
     RiskMatrixRequest, RiskMatrixResponse, RiskZoneResult,
     OperatorAdvisory, AdvisoryCreateRequest, AdvisoryTransitionRequest,
-    TelemetrySnapshotIn, SOPContextRequest
+    TelemetrySnapshotIn, SOPContextRequest, AgentGenerateRequest, AdvisoryState
 )
 from .production_db import get_session
 from .production_models import Advisory, AdvisoryState as DBAdvisoryState, AuditLog, TelemetrySnapshot
-from .sop_engine import build_context_wrapper, transition_state
+from .sop_engine import build_context_wrapper, transition_state, AdvisoryOrchestrator
 from .rag import PostgresSOPRetriever
+from .config import get_settings
+from .llm_client import OpenAICompatibleAdvisoryClient
 from .runtime import websocket_manager
 
 router = APIRouter()
@@ -85,6 +87,24 @@ async def risk_matrix(payload: RiskMatrixRequest):
         ],
     )
 
+
+@router.post("/agent/generate", response_model=OperatorAdvisory)
+async def generate_agent_advisory(payload: AgentGenerateRequest, session: AsyncSession = Depends(get_session)):
+    stmt = (select(TelemetrySnapshot).where(TelemetrySnapshot.zone_id.in_(payload.zone_ids)).order_by(TelemetrySnapshot.captured_at.desc()).limit(100))
+    telemetry = [dict(row) for row in (await session.execute(stmt)).mappings().all()]
+    context = await build_context_wrapper(telemetry=telemetry, weather=payload.weather, gate_throughput=payload.gate_throughput, query_embedding=payload.query_embedding, retriever=PostgresSOPRetriever(session))
+    settings = get_settings()
+    client = OpenAICompatibleAdvisoryClient() if settings.llm_base_url and settings.llm_api_key else None
+    try:
+        advisory, trace = await AdvisoryOrchestrator(client).generate(context)
+    except Exception as exc:
+        advisory, trace = await AdvisoryOrchestrator(None).generate(context)
+        trace = {**trace, "llm_fallback": True, "error_type": type(exc).__name__}
+    session.add(Advisory(incident_id=advisory.incident_id, state=DBAdvisoryState.PROPOSED, severity=advisory.severity.value, target_zone_ids=advisory.target_zone_ids, recommended_sop_id=advisory.recommended_sop_id, action_items=advisory.action_items, confidence_score=advisory.confidence_score))
+    session.add(AuditLog(incident_id=advisory.incident_id, operator_id="agent", action_taken="GENERATE_ADVISORY", ambient_telemetry={"telemetry": telemetry, "weather": payload.weather, "gate_throughput": payload.gate_throughput}, llm_reasoning_trace=trace))
+    await session.commit()
+    return advisory
+
 @router.post("/agent/advisories", response_model=OperatorAdvisory)
 async def create_advisory(payload: AdvisoryCreateRequest, session: AsyncSession = Depends(get_session)):
     advisory = Advisory(
@@ -121,7 +141,7 @@ async def transition_advisory(
     advisory = await session.get(Advisory, incident_uuid)
     if not advisory:
         raise HTTPException(404, "Advisory not found")
-    current = __import__("app.v1_schemas", fromlist=["AdvisoryState"]).AdvisoryState(advisory.state.value)
+    current = AdvisoryState(advisory.state.value)
     try:
         new_state = transition_state(current, payload.target_state)
     except ValueError as exc:

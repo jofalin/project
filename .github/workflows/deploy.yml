@@ -44,8 +44,7 @@ jobs:
       - name: Install backend dependencies
         run: pip install -r backend/requirements.txt
       - name: Run Alembic migrations
-        working-directory: backend
-        run: alembic -c alembic.ini upgrade head
+        run: alembic -c backend/alembic.ini upgrade head
       - name: Run backend unit tests
         working-directory: backend
         run: pytest -q

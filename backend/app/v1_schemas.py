@@ -116,6 +116,14 @@ class TelemetrySnapshotIn(BaseModel):
     weather_severity: float = Field(default=0, ge=0, le=1)
     source: str = Field(default="camera", max_length=64)
 
+class AgentGenerateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    zone_ids: list[str] = Field(min_length=1, max_length=100)
+    weather: dict = Field(default_factory=dict)
+    gate_throughput: dict = Field(default_factory=dict)
+    query: str = Field(min_length=1, max_length=1000)
+    query_embedding: list[float] | None = None
+
 class SOPContextRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     zone_ids: list[str] = Field(min_length=1, max_length=100)

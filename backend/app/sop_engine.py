@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Protocol
-from uuid import UUID
+from uuid import uuid4
 from .v1_schemas import AdvisoryState, OperatorAdvisory
 
 ALLOWED_TRANSITIONS = {
@@ -42,7 +42,7 @@ class AdvisoryOrchestrator:
         if self.llm_client:
             raw, trace = await self.llm_client.generate_advisory(context)
             return OperatorAdvisory.model_validate_json(raw), trace
-        incident_id = UUID(int=0)
+        incident_id = uuid4()
         advisory = OperatorAdvisory(
             incident_id=incident_id,
             severity="HIGH",

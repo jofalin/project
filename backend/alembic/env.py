@@ -1,4 +1,3 @@
-from logging.config import fileConfig
 import os
 import sys
 from alembic import context
@@ -11,8 +10,6 @@ from app.production_db import Base
 from app import production_models  # noqa: F401
 
 config = context.config
-if config.config_file_name:
-    fileConfig(config.config_file_name)
 target_metadata = Base.metadata
 
 def _url():

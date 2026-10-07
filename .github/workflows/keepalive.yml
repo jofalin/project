@@ -7,12 +7,14 @@ on:
 
 jobs:
   ping:
-    if: ${{ secrets.RENDER_HEALTH_URL != '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Ping production health endpoint
         env:
           RENDER_HEALTH_URL: ${{ secrets.RENDER_HEALTH_URL }}
         run: |
-          test -n "$RENDER_HEALTH_URL"
-          curl --fail --silent --show-error --max-time 15 "$RENDER_HEALTH_URL/healthz"
+          if [ -n "$RENDER_HEALTH_URL" ]; then
+            curl --fail --silent --show-error --max-time 15 "$RENDER_HEALTH_URL/healthz"
+          else
+            echo "RENDER_HEALTH_URL is not configured; keepalive skipped."
+          fi
